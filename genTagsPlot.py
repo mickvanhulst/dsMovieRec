@@ -13,22 +13,22 @@ mov = pd.read_sql("select * from movies", con=Connection)
 stop = stopwords.words('english')
 
 #Convert to lower case and remove special characters
-mov['title'] = mov['title'].str.lower()
-mov['title'] = mov['title'].str.replace('[^\w\s]','')
+mov['Plot'] = mov['Plot'].str.lower()
+mov['Plot'] = mov['Plot'].str.replace('[^\w\s]','')
 
 #Split keywords from plot
-keywords = mov['title'][0:10].str.split(' ').apply(pd.Series, 1).stack()
+keywords = mov['Plot'].str.split(' ').apply(pd.Series, 1).stack()
 keywords.index = keywords.index.droplevel(-1)
 
 #Create dataframe and insert index column (movieTitle)
 df = pd.DataFrame(keywords)
 
-#Set column name
-df.columns = ['Keyword']
+#Change column name
+df.columns = ['Keyword'] #
 
 #Add new columns to start of dataframe
-df.insert(0, 'movieId', df.index)
-df.insert(0, 'genKeywordId', range(0, len(df)))
+df.insert(0, 'movieId', df.index) #reference to movies table
+df.insert(0, 'genKeywordId', range(0, len(df))) #Will be used as unique key
 
 #Remove stopwords from dataframe
 df = df[~df['Keyword'].isin(stop)]
