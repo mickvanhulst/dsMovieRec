@@ -4,7 +4,7 @@ import omdb #Package used to scrape movie mov from API
 import pymysql
 from nltk.corpus import stopwords
 
-Connection = pymysql.connect(host='127.0.0.1', user="root", db='test', charset='utf8mb4',cursorclass=pymysql.cursors.DictCursor)
+Connection = pymysql.connect(host='81.204.145.155', user="dsMinor", password="dsMinor!123", db='MoviesDS', charset='utf8mb4',cursorclass=pymysql.cursors.DictCursor)
 
 #Get keywords
 mov = pd.read_sql("select * from movies", con=Connection)
@@ -30,8 +30,8 @@ df.columns = ['Keyword'] #
 df.insert(0, 'movieId', df.index) #reference to movies table
 df.insert(0, 'genKeywordId', range(0, len(df))) #Will be used as unique key
 
-#Remove stopwords from dataframe
-df = df[~df['Keyword'].isin(stop)]
+#Remove stopwords and empty strings from dataframe
+df = df[(~df['Keyword'].isin(stop)) & (df['Keyword'] != "")]
 
 #Insert into database
 df.to_sql(con=Connection, name='genKeywords', if_exists='replace', flavor='mysql', index=False)
