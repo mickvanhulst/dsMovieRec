@@ -20,8 +20,8 @@ train = pd.DataFrame(train)
 test = pd.DataFrame(test)
 
 #Insert into database
-train.to_sql(con=Connection, name='trainSet', if_exists='replace', flavor='mysql', index=False)
-test.to_sql(con=Connection, name='testSet', if_exists='replace', flavor='mysql', index=False)
+#train.to_sql(con=Connection, name='trainSet', if_exists='replace', flavor='mysql', index=False)
+#test.to_sql(con=Connection, name='testSet', if_exists='replace', flavor='mysql', index=False)
 
 #Close connection
 Connection.close()
