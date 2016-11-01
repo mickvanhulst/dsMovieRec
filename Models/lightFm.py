@@ -3,48 +3,70 @@
 import numpy as np
 from lightfm.datasets import fetch_movielens
 from lightfm import LightFM
-
-#CHALLENGE part 1 of 3 - write your own fetch and format method for a different recommendation
-#dataset. Here a good few https://gist.github.com/entaroadun/1653794 
-#And take a look at the fetch_movielens method to see what it's doing 
-#
+import pandas as pd
 
 #fetch data and format it. Only take the higher ratings, since we want to recommend movies that users liked.
-data = fetch_movielens(min_rating=4.0)
+data = fetch_movielens(min_rating=3.5)
 
-#create model
-model = LightFM(loss='warp')
-#train model
-model.fit(data['train'], epochs=30, num_threads=2)
+#Load models
+modelList = ['warp', 'logistic', 'bpr', 'warp-kos']
+user = 3
 
+#recommendations dict -- ModelName | movieName
+recMoviesByModel = {}
 
-def sample_recommendation(model, data, user_ids):
+#Create empty list for movies
+recMovies = []
 
-    #number of users and movies in training data
-    n_users, n_items = data['train'].shape
+def sample_recommendation(modelList, data, user_ids):
+	#number of users and movies in training data
+	n_users, n_items = data['train'].shape
+	for i, modelName in enumerate(modelList):
+		#create model
+		model = LightFM(loss=modelName)
+		#train model
+		model.fit(data['train'], epochs=30, num_threads=2)
 
-    #generate recommendations for each user we input
-    for user_id in user_ids:
+		#movies they already like
+		known_positives = data['item_labels'][data['train'].tocsr()[user].indices]
 
-        #movies they already like
-        known_positives = data['item_labels'][data['train'].tocsr()[user_id].indices]
-
-        #movies our model predicts they will like
-        scores = model.predict(user_id, np.arange(n_items))
-        #rank them in order of most liked to least
-        top_items = data['item_labels'][np.argsort(-scores)]
-
-        #print out the results
-        print("User %s" % user_id)
-        print("     Known positives:")
-
-        for x in known_positives[:3]:
-            print("        %s" % x)
-
-        print("     Recommended:")
-
-        for x in top_items[:3]:
-            print("        %s" % x)
+		#movies our model predicts they will like
+		scores = model.predict(user, np.arange(n_items))
+		#rank them in order of most liked to least
+		top_items = data['item_labels'][np.argsort(-scores)]
+		
+		#init empty list		
+		movList = []
+		for k, movie in enumerate(top_items[:10]):
+			#Append movie to list and dict
+			movList.append(movie)	
+			recMovies.append(movie)
+		#Append list to current model/user
+		recMoviesByModel[modelName] = movList		
 
 #Third parameter is the userId. So we have to replace that with the userId for who we are trying to recommend.  
-sample_recommendation(model, data, [3, 25, 450])
+sample_recommendation(modelList, data, user)
+
+#Count amount of occurances
+movTop = []
+for mov in set(recMovies):
+	movTop.append([mov, recMovies.count(mov)])
+
+#Sort high/low and only keep values that occur more than one time
+movTop = sorted(movTop, key=lambda l:l[1], reverse=True)
+
+##Recommend movFiltered
+movFiltered = list(filter(lambda x: x[1] > 1, movTop))
+
+##Determine accuracy
+#Filter movies so that we just have the movienames
+dictModelAcc = {}
+justMov = [i[0] for i in movFiltered]
+#Loop through dict and detect which algo holds the most of the filtered values.
+for model in recMoviesByModel:
+	dictModelAcc[model] = 0
+	for index, item in enumerate(recMoviesByModel[model]):
+		if item in justMov:
+			dictModelAcc[model] += 1
+
+print(dictModelAcc)
