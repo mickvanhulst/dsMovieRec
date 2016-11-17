@@ -3,8 +3,6 @@ import numpy as np
 from sklearn.metrics import pairwise_distances
 
 #Functions
-
-
 def predict_topk(ratings, similarity, k=50):
 	pred = np.zeros(ratings.shape)
 	for j in range(ratings.shape[1]):
@@ -40,16 +38,9 @@ sparsity *= 100
 print('Sparsity: {:4.2f}%'.format(sparsity))
 
 ##User-based Collaberative filtering
-#Find item similarity
-item_similarity = find_similarity(ratings)
-
-#predict
-pred = predict_topk(ratings, item_similarity, k=40)
-pred = pd.DataFrame(pred)
-
 # Load in movie data and get movie title
 idx_to_movie = {}
-with open('./data2/u.item', 'r', encoding = "ISO-8859-1") as f:
+with open('../data2/u.item', 'r', encoding = "ISO-8859-1") as f:
     for line in f.readlines():
         info = line.split('|')
         idx_to_movie[int(info[0])-1] = info[1]
@@ -59,7 +50,7 @@ item_correlation = 1 - pairwise_distances(ratings.T, metric='correlation')
 item_correlation[np.isnan(item_correlation)] = 0.
 
 #Find movies that similar uses like
-idx = 1 # GoldenEye
+idx = 1000 # GoldenEye
 movies = top_k_movies(item_correlation, idx_to_movie, idx)
 
 #Based on user data, if a user likes the movie 'Golden Eye', then according to this model he also likes the following 5 movies:

@@ -7,25 +7,25 @@ graphlab.product_key.set_product_key('BCB5-EC60-E065-BABC-FEDA-EA99-7F2E-15CD')
 
 #Reading users file:
 u_cols = ['user_id', 'age', 'sex', 'occupation', 'zip_code']
-users = pd.read_csv('./data2/u.user', sep='|', names=u_cols,
+users = pd.read_csv('../data2/u.user', sep='|', names=u_cols,
  encoding='latin-1')
 
 #Reading ratings file:
 r_cols = ['user_id', 'movie_id', 'rating', 'unix_timestamp']
-ratings = pd.read_csv('./data2/u.data', sep='\t', names=r_cols,
+ratings = pd.read_csv('../data2/u.data', sep='\t', names=r_cols,
  encoding='latin-1')
 
 #Reading items file:
 i_cols = ['movie id', 'movie title' ,'release date','video release date', 'IMDb URL', 'unknown', 'Action', 'Adventure',
  'Animation', 'Children\'s', 'Comedy', 'Crime', 'Documentary', 'Drama', 'Fantasy',
  'Film-Noir', 'Horror', 'Musical', 'Mystery', 'Romance', 'Sci-Fi', 'Thriller', 'War', 'Western']
-items = pd.read_csv('./data2/u.item', sep='|', names=i_cols,
+items = pd.read_csv('../data2/u.item', sep='|', names=i_cols,
  encoding='latin-1')
 
 #Pre-divided training/test dataset
 r_cols = ['user_id', 'movie_id', 'rating', 'unix_timestamp']
-ratings_base = pd.read_csv('./data2/ua.base', sep='\t', names=r_cols, encoding='latin-1')
-ratings_test = pd.read_csv('./data2/ua.test', sep='\t', names=r_cols, encoding='latin-1')
+ratings_base = pd.read_csv('../data2/ua.base', sep='\t', names=r_cols, encoding='latin-1')
+ratings_test = pd.read_csv('../data2/ua.test', sep='\t', names=r_cols, encoding='latin-1')
 
 #Create SFrames since we'll be  using GraphLab
 train_data = graphlab.SFrame(ratings_base)
@@ -51,5 +51,5 @@ item_sim_recomm = item_sim_model.recommend(users=range(1,6),k=5)
 item_sim_recomm.print_rows(num_rows=25)
 
 ##Compare model performance
-model_performance = graphlab.compare(test_data, [popularity_model, item_sim_model])
-graphlab.show_comparison(model_performance,[popularity_model, item_sim_model])
+#model_performance = graphlab.compare(test_data, [popularity_model, item_sim_model])
+#graphlab.show_comparison(model_performance,[popularity_model, item_sim_model])

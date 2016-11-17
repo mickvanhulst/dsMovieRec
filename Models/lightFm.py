@@ -6,6 +6,7 @@ from lightfm import LightFM
 import pandas as pd
 
 #fetch data and format it. Only take the higher ratings, since we want to recommend movies that users liked.
+#Change data to dataset 
 data = fetch_movielens(min_rating=3.5)
 
 #Load models
@@ -37,7 +38,7 @@ def sample_recommendation(modelList, data, user_ids):
 		
 		#init empty list		
 		movList = []
-		for k, movie in enumerate(top_items[:10]):
+		for k, movie in enumerate(top_items[:30]):
 			#Append movie to list and dict
 			movList.append(movie)	
 			recMovies.append(movie)
@@ -53,7 +54,7 @@ for mov in set(recMovies):
 	movTop.append([mov, recMovies.count(mov)])
 
 #Sort high/low and only keep values that occur more than one time
-movTop = sorted(movTop, key=lambda l:l[1], reverse=True)
+movTop = sorted(movTop, key=lambda x:x[1], reverse=True)
 
 ##Recommend movFiltered
 movFiltered = list(filter(lambda x: x[1] > 1, movTop))
@@ -69,4 +70,8 @@ for model in recMoviesByModel:
 		if item in justMov:
 			dictModelAcc[model] += 1
 
+#Print models with number of occurances
 print(dictModelAcc)
+
+#Register the number of occurances everytime the model is called. Then take the average at
+# the end of the project. This will determine which model works best.
