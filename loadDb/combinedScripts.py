@@ -6,15 +6,21 @@ from sqlalchemy.types import VARCHAR
 from sqlalchemy import create_engine
 import sqlalchemy
 from nltk.corpus import stopwords
+import nltk
 
+#nltk.download()
 # Connect to database
 Connection = pymysql.connect(host='81.204.145.155', user="dsMinor", passwd="dsMinor!123", db='MoviesDS', charset='utf8mb4', cursorclass=pymysql.cursors.DictCursor)
 
 # Create engine
 engine = sqlalchemy.create_engine('mysql+pymysql://dsMinor:dsMinor!123@81.204.145.155/MoviesDS?charset=utf8', encoding="utf-8")
 
+# Load dataframes
 ratings = pd.read_csv('../data/ratings.csv', encoding='utf-8')
 movies = pd.read_csv('../data/movies.csv', encoding='utf-8')
+
+# Drop timestamp column
+ratings = ratings.drop('timestamp', 1)
 
 #### omdbApiScraper
 # Remove year from title and strip spaces from sides
@@ -26,7 +32,7 @@ movies['Plot'] = movies.index
 movies['Year'] = movies.index
 movies['imdbId'] = movies.index
 
-for i in range(len(movies)):
+for i in range(3):
     # Process API and create movframe
     print(i)
     request = omdb.request(t=movies['title'][i], r='json', fullplot=True).content
@@ -65,15 +71,16 @@ gen_keywords = pd.DataFrame(keywords)
 # Change column name
 gen_keywords.columns = ['Keyword']
 
-# Add new columns to start of dataframe
-gen_keywords.insert(0, 'movieId', gen_keywords.index) #reference to movies table
-gen_keywords.insert(0, 'genKeywordId', range(0, len(gen_keywords))) #Will be used as unique key
+# Add movieId, start this value at one because of the dataset.
+gen_keywords.insert(0, 'movieId', (gen_keywords.index + 1))
 
 # Remove stopwords and empty strings from dataframe
 gen_keywords = gen_keywords[(~gen_keywords['Keyword'].isin(stop)) & (gen_keywords['Keyword'] != "")]
 
 # Insert into database
 gen_keywords.to_sql(con=engine, name='genKeywords', if_exists='append', index=False)
+
+# Insert into database
 ratings.to_sql(con=engine, name='ratings', if_exists='append', index=False)
 
 # Save all users from ratings in db.
