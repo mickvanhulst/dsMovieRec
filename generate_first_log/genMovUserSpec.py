@@ -5,7 +5,7 @@ import pymysql
 from datetime import date
 
 def get_rand_movies(movies, ratings, conn):
-	# Filter movies/ratings where movie max 10 years old (this could be user specific in the future).
+	# Filter movies/ratings where movie max 10 years old.
 	movies_max_years_old = movies[movies['year'] <= (date.today().year - 10)]
 	ratings = ratings[ratings['movieId'].isin(list(movies_max_years_old['movieId'].values))]
 
@@ -21,21 +21,25 @@ def get_rand_movies(movies, ratings, conn):
 	# If movie avg & count is higher than total avg & count.
 	mov_filtered = agg_movie[(agg_movie['mean'] >= ratings_avg) & (agg_movie['count'] >= ratings_avg_cnt)]
 
-	# Init lists
-	recomm = []
-	genres = []
-
 	# generate fifty random movies and save movieId's in list
 	rand_sample = list(mov_filtered.sample(50).index)
 	
 	# Save to db
-	safe_sample_db(movies, ratings, conn)
+	save_sample_db(rand_sample, conn)
 	
 	return (rand_sample)
 
-def safe_sample_db(movies, ratings, conn):
+def save_sample_db(rand_sample, conn):
 	print('Do not forget to implement this:P')
-	 #Safe the movies in db 
+
+	# Create engine
+	engine = sqlalchemy.create_engine('mysql+pymysql://dsMinor:dsMinor!123@81.204.145.155/MoviesDS?charset=utf8', encoding="utf-8")
+	
+	# Save the movies in db 
+	print(rand_sample)
+	#sample_df = 
+
+	#movies.to_sql(con=engine, name='movies', if_exists='append', index=False)
 
 	# Use a count system. Every movie starts with 30 points.
 
