@@ -3,8 +3,9 @@ import pandas as pd
 import numpy as np
 import pymysql
 from datetime import date
+import sqlalchemy
 
-def get_rand_movies(movies, ratings, conn):
+def get_rand_movies(amount_to_gen, movies, ratings, conn):
 	# Filter movies/ratings where movie max 10 years old.
 	movies_max_years_old = movies[movies['year'] <= (date.today().year - 10)]
 	ratings = ratings[ratings['movieId'].isin(list(movies_max_years_old['movieId'].values))]
@@ -22,53 +23,65 @@ def get_rand_movies(movies, ratings, conn):
 	mov_filtered = agg_movie[(agg_movie['mean'] >= ratings_avg) & (agg_movie['count'] >= ratings_avg_cnt)]
 
 	# generate fifty random movies and save movieId's in list
-	rand_sample = list(mov_filtered.sample(50).index)
-	
+	rand_sample = list(mov_filtered.sample(amount_to_gen).index)
+	print(rand_sample)
 	# Save to db
 	save_sample_db(rand_sample, conn)
 	
 	return (rand_sample)
 
 def save_sample_db(rand_sample, conn):
-	print('Do not forget to implement this:P')
+	# Create dataframe from rand_sample and add points
+	rand_sample = pd.DataFrame(rand_sample)
+	rand_sample['points'] = 30
+	rand_sample.columns = ['movieId', 'points']
 
 	# Create engine
 	engine = sqlalchemy.create_engine('mysql+pymysql://dsMinor:dsMinor!123@81.204.145.155/MoviesDS?charset=utf8', encoding="utf-8")
 	
 	# Save the movies in db 
-	print(rand_sample)
-	#sample_df = 
-
-	#movies.to_sql(con=engine, name='movies', if_exists='append', index=False)
+	rand_sample.to_sql(con=engine, name='sampleUserInitial', if_exists='append', index=False)
 
 	# Use a count system. Every movie starts with 30 points.
+	# If user rates the movie with a high score then add a count.
+	# If user rates it low, then substract a point.
+	# If user does not know the movie substract two counts.
+	# If movie points are lower or equal to zero, remove the movie and 
+	# adds a new movie by running this program.
 
-	# If user rates the movie with a high score then add a count
+def check_amount_gen(conn, MINIMUM_TOTAL):
+	# Check total amount of rows with points higher than 0.
+	count_sample = pd.read_sql("select count(*) from sampleUserInitial where points > 0", con=conn)
 
-	# If user rates it low, then substract a count
-
-	# If user does not know the movie substract two counts
-
-	# If movie points are lower or equal to zero, remove the movie and add a new movie by running this program.
+	# Substract result from the required total in our table.
+	count_sample = MINIMUM_TOTAL - count_sample.iat[0,0]
+	
+	return count_sample
 
 def main():
 	# Setup connection
 	conn = pymysql.connect(host='81.204.145.155', user="dsMinor", passwd="dsMinor!123", db='MoviesDS', 
 		charset='utf8mb4', cursorclass=pymysql.cursors.DictCursor)
 
-	#Get movies & ratings
-	movies = pd.read_sql("select * from movies", con=conn)
-	ratings = pd.read_sql("select * from ratings", con=conn)
+	# Minimum total (static variable)
+	MINIMUM_TOTAL = 50
 
-	#print(get_rand_movies(movies,ratings, conn))
+	# Check how many movies need to be generated
+	amount_to_gen = check_amount_gen(conn, MINIMUM_TOTAL)
+	print(amount_to_gen)
+	
+	if(amount_to_gen > 0):
+		#Get movies & ratings
+		movies = pd.read_sql("select * from movies", con=conn)
+		ratings = pd.read_sql("select * from ratings", con=conn)
 
-	return (get_rand_movies(movies,ratings, conn))
+		return (get_rand_movies(amount_to_gen, movies,ratings, conn))
+	else:
+		return 'No rows generated'
 
 if __name__ == '__main__':
     data = main()
     print(data)
-
-
 
 ## Get init recommendation scores, then use those scores for the content-based algo.
 
