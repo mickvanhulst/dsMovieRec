@@ -43,11 +43,10 @@ def save_sample_db(rand_sample, conn):
 	rand_sample.to_sql(con=engine, name='sampleUserInitial', if_exists='append', index=False)
 
 	# Use a count system. Every movie starts with 30 points.
-	# If user rates the movie with a high score then add a count.
-	# If user rates it low, then substract a point.
+	# If user rates the movie with a score then add a count.
 	# If user does not know the movie substract two counts.
-	# If movie points are lower or equal to zero, remove the movie and 
-	# adds a new movie by running this program.
+	# If movie points are lower or equal to zero, new movies will be added
+	# by running this script.
 
 def check_amount_gen(conn, MINIMUM_TOTAL):
 	# Check total amount of rows with points higher than 0.

@@ -27,30 +27,26 @@ ratings = ratings.drop('timestamp', 1)
 movies['title'] = movies['title'].str.replace(r"\(.*\)", "")
 movies['title'] = movies['title'].str.strip()
 
-# Create new column and set index
-movies['Plot'] = movies.index
-movies['Year'] = movies.index
-movies['imdbId'] = movies.index
+# Create dataframe
+columns_omdb = ['Title', 'Plot', 'Year', 'imdbID'
+        , 'Director', 'Runtime', 'Language', 'Country', 'imdbRating', 'Actors', 'Awards']
+df_omdb = pd.DataFrame(columns=columns_omdb)
 
-for i in range(3):
+for i in range(len(movies)):
     # Process API and create movframe
-    print(i)
     request = omdb.request(t=movies['title'][i], r='json', fullplot=True).content
+    
     # Jaar en eventuele andere kolommen toevoegen
-    dfPlot = pd.DataFrame(eval(request), columns=['Plot'], index=[0])
-    dfYear = pd.DataFrame(eval(request), columns=['Year'], index=[0])
-    dfImdb = pd.DataFrame(eval(request), columns=['imdbID'], index=[0])
+    req = pd.DataFrame(eval(request), columns=columns_omdb, index=[0])
+    
+    #print(req)
+    df_omdb = pd.DataFrame(df_omdb, columns=columns_omdb).append(req, ignore_index=True)
 
-    # Add values to dataframe and remove json brackets
-    movies['Plot'][i] = list(map(str, dfPlot['Plot'].values))
-    movies['Plot'][i] = ", ".join(movies['Plot'][i])  # Remove json brackets
+df_omdb = df_omdb.rename(columns = {'Title':'title'})
+movies = pd.merge(left=movies, right=df_omdb, on='title', how='left')
 
-    movies['Year'][i] = list(map(str, dfYear['Year'].values))
-    movies['Year'][i] = ", ".join(movies['Year'][i])  # Remove json brackets
-
-    movies['imdbId'][i] = list(map(str, dfImdb['imdbID'].values))
-    movies['imdbId'][i] = ", ".join(movies['imdbId'][i])  # Remove json brackets
-
+#print(df_omdb)
+movies.to_csv('test.csv')
 # Insert movies in MySql
 movies.to_sql(con=engine, name='movies', if_exists='append', index=False)
 
