@@ -28,7 +28,7 @@ def get_rand_movies(amount_to_gen, movies, ratings, conn):
 	# Save to db
 	save_sample_db(rand_sample, conn)
 	
-	return (rand_sample)
+	return rand_sample
 
 def save_sample_db(rand_sample, conn):
 	# Create dataframe from rand_sample and add points
@@ -74,24 +74,10 @@ def main():
 		movies = pd.read_sql("select * from movies", con=conn)
 		ratings = pd.read_sql("select * from ratings", con=conn)
 
-		return (get_rand_movies(amount_to_gen, movies,ratings, conn))
+		return get_rand_movies(amount_to_gen, movies,ratings, conn)
 	else:
 		return 'No rows generated'
 
 if __name__ == '__main__':
     data = main()
     print(data)
-
-## Get init recommendation scores, then use those scores for the content-based algo.
-
-# note: Eventueel meerdere movies selecteren (dus 5 dichtste bij) dan op basis van user input steeds meer films genereren.
-# User vindt film één leuk maar niet film twee. Skip films die lijken op film twee qua genre and ga verde rop deel één.
-# Niet vergeten om dan alsnog een stukje random toe te voegen. <--- Hierbij zou content based echt perfect zijn.
-# Waarom content based over user based? Omdat we op dat moment nog niet genoeg informatie over de user hebben verzameld
-# waarop we aanbevelingen kunnen maken op een user-based niveau.
-
-
-# Matrix maken van keywords en dan alle keywords eruitfilteren welke minder dan 2 keer voorkomen en degene die meer dan het gemiddelde voorkomen
-# Door de veelvoorkomende keywords eruit te halen, filter je woorden welke eigenlijk niet veel toevoegen aan het al gebruikte genre.
-# Als een keyword 'Avontuur' bevat en het genre is al 'avontuur' boeit het natuurlijk niks. Plus het zorgt ervoor dat je alsnog 
-# heel globaal blijft zoeken. Door keywords te pakken welke minder voorkomen (denk aan '007'), zoek je al specifieker.
