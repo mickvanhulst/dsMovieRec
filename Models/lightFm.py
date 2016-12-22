@@ -59,6 +59,8 @@ movTop = sorted(movTop, key=lambda x:x[1], reverse=True)
 ##Recommend movFiltered
 movFiltered = list(filter(lambda x: x[1] > 1, movTop))
 
+print(movFiltered)
+
 ##Determine accuracy
 #Filter movies so that we just have the movienames
 dictModelAcc = {}

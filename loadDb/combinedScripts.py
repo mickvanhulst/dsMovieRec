@@ -34,6 +34,7 @@ df_omdb = pd.DataFrame(columns=columns_omdb)
 
 for i in range(len(movies)):
     # Process API and create movframe
+    print(i)
     request = omdb.request(t=movies['title'][i], r='json', fullplot=True).content
     
     # Jaar en eventuele andere kolommen toevoegen
@@ -45,8 +46,6 @@ for i in range(len(movies)):
 df_omdb = df_omdb.rename(columns = {'Title':'title'})
 movies = pd.merge(left=movies, right=df_omdb, on='title', how='left')
 
-#print(df_omdb)
-movies.to_csv('test.csv')
 # Insert movies in MySql
 movies.to_sql(con=engine, name='movies', if_exists='append', index=False)
 
