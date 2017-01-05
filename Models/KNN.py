@@ -1,160 +1,113 @@
-'''
-Trying out k-nearest neighbours for recommendations, to see if that
-produces better results.
-'''
+import pandas as pd
+import math
+import numpy as np
+import operator
+import pymysql
+ 
+# Turn off annoying warning (Link: http://stackoverflow.com/questions/20625582/how-to-deal-with-settingwithcopywarning-in-pandas)
+pd.options.mode.chained_assignment = None
 
-from math import sqrt
-from movielib import *
+# Use root mean squared error, because the closer the user is, the smaller the rmse.
+# - Always gives positive number
+# - Emphasizes bigger deviations
+def RMSE(user, ratings, ratings_log_in_user):
+	max_rating = 5.0
+	sum = 0
+	count = 0
+	log_in_user_movies = list(ratings_log_in_user['movieId'].values)
 
-# --- Configuration
+	# Loop through user rows
+	for idx in ratings[ratings['userId'] == user].index:
+		# If movie in ratings list of user
+		movieId = ratings.loc[idx, 'movieId'].item()
 
-k = 50
-theuser = 6041 #944
+		if movieId in log_in_user_movies:
+			# Rating logged in user for current movie
+			rating_curr_user = ratings_log_in_user['rating'][ratings_log_in_user['movieId'] == movieId]
+			
+			sum += math.pow(rating_curr_user - ratings.loc[idx, 'rating'].item(), 2)
+			count += 1
+		
+	
+	if not count:
+		return 100000 # no ratings in common, so we return a huge distance
+	else:
+		return np.sqrt(sum / float(count)) + (max_rating / count)
+		
 
-# --- Distance measures
-def avg(numbers, n = 2):
-    return (sum(numbers) + (3.0 * n)) / float(len(numbers) + n)
+def det_nearest_neighbours(ratings, ratings_log_in_user, k):
+	# Loop through all and calculate RMSE
+	dist_dict = {}
 
-def minkowski(rating1, rating2, r = 3):
-    """Computes the Minkowski distance.
-    Both rating1 and rating2 are dictionaries of the form
-    {'The Strokes': 3.0, 'Slightly Stoopid': 2.5}"""
+	for user in ratings['userId'].unique():
+		# Set index of training point plus euclidean distance
+		dist_dict[user] = RMSE(user, ratings, ratings_log_in_user)
+
+	# Get k lowest values
+	dict_top_k = sorted(dist_dict, key=dist_dict.get)[:k]
+
+	return dict_top_k
+
+def get_recommendations(ratings, ratings_log_in_user, nearest_neighbours):
+	recommendations = {}
+
+	# Get all movies from logged in user
+	movies_log_in_user = list(ratings_log_in_user['movieId'].values)
+	
+	for neighbour in nearest_neighbours:
+		for movie in ratings[ratings['userId'] == neighbour].index:
+			movie_name = ratings.loc[movie, 'movieId']
+
+			if movie_name not in movies_log_in_user:
+				# Check if key exists, else init.
+				if movie_name in recommendations:
+					recommendations[movie_name] += 1
+				else:
+					recommendations[movie_name] = 1
+
+	# Get sorted (high/low) movies where count higher than 1
+	recommendations = dict((k, v) for k, v in recommendations.items() if v >= 1)
+
+	return recommendations
+
+
+def KNN(ratings, ratings_log_in_user, k):
+	# Find k number of nearest neighbours
+	nearest_neighbours = det_nearest_neighbours(ratings, ratings_log_in_user, k)
+
+	# Get recommendations
+	recommendations = get_recommendations(ratings, ratings_log_in_user, nearest_neighbours)
+				
+	return recommendations
+
+
+def main():
+	# Setup connection
+	conn = pymysql.connect(host='81.204.145.155', user="dsMinor", passwd="dsMinor!123", db='MoviesDS', 
+		charset='utf8mb4', cursorclass=pymysql.cursors.DictCursor)
+
+	# Get userId from form
+	logged_in_user = 670
+
+	# Load ratings
+	ratings = pd.read_sql("select * from ratings", con=conn)
+
+	#OPTIMIZE: FILTER OUT USERS WHO DO NOT HAVE ANYTHING IN COMMON WITH CURRENT USER IN QUERY
+	# CNT(LIST(MOVIES_LOG_USER) IN USER(MOVIES)) > 0
+
+	# Determine k = n^0.5
+	k = int(math.pow(len(ratings.index), 0.5))
+
+	# Ratings current user
+	ratings_log_in_user = ratings[ratings['userId'] == logged_in_user]
     
-    distance = 0
-    commonRatings = False
-    for key in rating1:
-        if key in rating2:
-            distance += pow(abs(rating1[key] - rating2[key]), r)
-            commonRatings = True
-    if commonRatings:
-        return pow(float(distance),  1/r)
-    else:
-        return 1000000 #Indicates no ratings in common
+	# Generate recommendations
+	recommendations = KNN(ratings, ratings_log_in_user, k)
 
-def pearson(rating1, rating2):
-    sum_xy = 0
-    sum_x = 0
-    sum_y = 0
-    sum_x2 = 0
-    sum_y2 = 0
-    n = 0
-    for key in rating1:
-        if key in rating2:
-            n += 1
-            x = rating1[key]
-            y = rating2[key]
-            sum_xy += x * y
-            sum_x += x
-            sum_y += y
-            sum_x2 += x ** 2
-            sum_y2 += y ** 2
-            
-    # now compute denominator
-    if n == 0:
-        return 1000000
-    denominator = (sqrt(sum_x2 - (sum_x**2) / n) *
-                  sqrt(sum_y2 -(sum_y**2) / n))
-    if denominator == 0:
-        return 100000000
-    else:
-        sim = (sum_xy - (sum_x * sum_y) / n) / denominator
-        return 1.0 - sim
+	return recommendations
 
-def lmg_rmse(rating1, rating2):
-    max_rating = 5.0
-    sum = 0
-    count = 0
-    for (key, rating) in rating1.items():
-        if key in rating2:
-            sum += (rating2[key] - rating) ** 2
-            count += 1
-
-    if not count:
-        return 1000000 # no common ratings, so distance is huge
-    
-    return sqrt(sum / float(count)) + (max_rating / count)
-
-distance = lmg_rmse
-    
-# --- Load user ratings
-users = {} # userid -> {movie : rating, movie : rating, ...}
-for (user, movie, rating, time) in get_data():
-    user = int(user)
-    movie = int(movie)
-    
-    ratings = users.get(user)
-    if not ratings:
-        ratings = {}
-        users[user] = ratings
-
-    ratings[movie] = int(rating)
-
-# --- Find k nearest neighbours
-neighbours = []
-theratings = users[theuser]
-for (user, ratings) in users.items():
-    if user == theuser:
-        continue
-
-    neighbours.append((distance(theratings, ratings), user, ratings))
-
-neighbours.sort()
-neighbours = neighbours[ : k]
-
-# --- Load movies
-movies = {}
-for row in get_movies():
-    movie = int(row[0])
-    title = row[1]
-    movies[movie] = title
-
-# --- Go through neighbours
-neigh_ratings = {} # movie -> [r1, r2, r3]
-for ix in range(k):
-    (dist, user, ratings) = neighbours[ix]
-    
-    print "===== %s ==================================================" % ix
-    print "User #", user, ", distance:", dist
-    #print 'minkowski', minkowski(theratings, ratings)
-    #print 'pearson', pearson(theratings, ratings)
-    
-    for (movie, rating) in ratings.items():
-        common = ''
-        if theratings.has_key(movie):
-            common = '   YOUR: %s' % theratings[movie]
-        if common:
-            print movies[movie], rating, common
-
-        rs = neigh_ratings.get(movie)
-        if not rs:
-            rs = []
-            neigh_ratings[movie] = rs
-        rs.append(rating)
-
-# --- Find highest averages
-averages = [(avg(ratings), movie) for (movie, ratings) in neigh_ratings.items()]
-averages.sort()
-averages.reverse()
-
-print "===== RECOMMENDATIONS =================================================="
-count = 0
-for (average, movie) in averages:
-    if movie in theratings:
-        continue
-
-    print movies[movie], average
-    count += 1
-    if count > 10:
-        break
-
-print "===== DON'T SEE THESE! ================================================="
-count = 0
-averages.reverse()
-for (average, movie) in averages:
-    if movie in theratings:
-        continue
-
-    print movies[movie], average
-    count += 1
-    if count > 10:
-        break
+if __name__ == '__main__':
+	data = main()
+	print(data)
+	print('-------------------------------- SORTED -------------------------------------')
+	print(sorted(data, key=data.get, reverse=True))
