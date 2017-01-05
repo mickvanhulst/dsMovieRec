@@ -3,6 +3,7 @@ import math
 import numpy as np
 import operator
 import pymysql
+from collections import Counter
  
 # Turn off annoying warning (Link: http://stackoverflow.com/questions/20625582/how-to-deal-with-settingwithcopywarning-in-pandas)
 pd.options.mode.chained_assignment = None
@@ -44,29 +45,27 @@ def det_nearest_neighbours(ratings, ratings_log_in_user, k):
 		dist_dict[user] = RMSE(user, ratings, ratings_log_in_user)
 
 	# Get k lowest values
-	dict_top_k = sorted(dist_dict, key=dist_dict.get)[:k]
+	top_k_users = sorted(dist_dict, key=dist_dict.get)[:k]
 
-	return dict_top_k
+	return top_k_users
 
 def get_recommendations(ratings, ratings_log_in_user, nearest_neighbours):
-	recommendations = {}
-
 	# Get all movies from logged in user
 	movies_log_in_user = list(ratings_log_in_user['movieId'].values)
 	
+	# Append movies from neighbours
+	movie_list = []
 	for neighbour in nearest_neighbours:
 		for movie in ratings[ratings['userId'] == neighbour].index:
-			movie_name = ratings.loc[movie, 'movieId']
+			#movie_name = ratings.loc[movie, 'movieId']
 
-			if movie_name not in movies_log_in_user:
-				# Check if key exists, else init.
-				if movie_name in recommendations:
-					recommendations[movie_name] += 1
-				else:
-					recommendations[movie_name] = 1
+			movie_list.append(ratings.loc[movie, 'movieId'])
 
-	# Get sorted (high/low) movies where count higher than 1
-	recommendations = dict((k, v) for k, v in recommendations.items() if v >= 1)
+	# Count movies, return dict
+	movie_cnt_dict = Counter(movie_list)
+
+	# Get movies where count higher than 1
+	recommendations = dict((k, v) for k, v in movie_cnt_dict.items() if v > 1)
 
 	return recommendations
 
@@ -93,7 +92,10 @@ def main():
 	ratings = pd.read_sql("select * from ratings", con=conn)
 
 	# Determine k = n^0.5
-	k = int(math.pow(len(ratings.index), 0.5))
+	#k = int(math.pow(len(ratings.index), 0.5)) <-- gives a super high value
+
+	# Try k with unique users (since nearest neihbours is based on users)
+	k = int(math.pow(len(ratings['userId'].unique()), 0.5))
 
 	# Ratings current user
 	ratings_log_in_user = ratings[ratings['userId'] == logged_in_user]
@@ -103,7 +105,7 @@ def main():
 
 	# Sort data and get top thirty percent
 	recommendations = sorted(recommendations, key=recommendations.get, 
-		reverse=True)[:round(len(recommendations) * 0.3)]
+		reverse=True)[:round(len(recommendations) * 0.1)]
 
 	return recommendations
 
