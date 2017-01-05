@@ -14,6 +14,13 @@ def cos_similarity(ratings, epsilon=1e-9):
 	
 	return (sim / norms / norms.T)
 
+def calculate_sparsity(ratings_matrix):
+	sparsity = float(len(ratings_matrix.nonzero()[0]))
+	sparsity /= (ratings_matrix.shape[0] * ratings_matrix.shape[1])
+	sparsity *= 100
+	print('Sparsity: {:4.2f}%'.format(sparsity)) 
+
+
 def process_data(conn):
 	# Get data
 	ratings = pd.read_sql("select * from ratings", con=conn)
@@ -35,6 +42,10 @@ def process_data(conn):
 	# Create matrix showing rating by user and movie
 	for row in merged_ratings.itertuples():
 		ratings_matrix[row[1]-1, row[6]-1] = row[3]
+
+	# Calculate sparsity (means that percentage of user-item ratings have a value, 
+	#zero does not count as value.)
+	#calculate_sparsity(ratings_matrix)
 
 	# Get indexes with movie references
 	idx_to_movie = {}

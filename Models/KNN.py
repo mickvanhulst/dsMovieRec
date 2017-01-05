@@ -92,22 +92,21 @@ def main():
 	# Load ratings
 	ratings = pd.read_sql("select * from ratings", con=conn)
 
-	#OPTIMIZE: FILTER OUT USERS WHO DO NOT HAVE ANYTHING IN COMMON WITH CURRENT USER IN QUERY
-	# CNT(LIST(MOVIES_LOG_USER) IN USER(MOVIES)) > 0
-
 	# Determine k = n^0.5
 	k = int(math.pow(len(ratings.index), 0.5))
 
 	# Ratings current user
 	ratings_log_in_user = ratings[ratings['userId'] == logged_in_user]
-    
+
 	# Generate recommendations
 	recommendations = KNN(ratings, ratings_log_in_user, k)
+
+	# Sort data and get top thirty percent
+	recommendations = sorted(recommendations, key=recommendations.get, 
+		reverse=True)[:round(len(recommendations) * 0.3)]
 
 	return recommendations
 
 if __name__ == '__main__':
 	data = main()
 	print(data)
-	print('-------------------------------- SORTED -------------------------------------')
-	print(sorted(data, key=data.get, reverse=True))
