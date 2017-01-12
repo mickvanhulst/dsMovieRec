@@ -1,14 +1,29 @@
-# Get results for all models
+def main():
+    # Setup connection
+    conn = pymysql.connect(host='81.204.145.155', user="dsMinor", passwd="dsMinor!123", db='MoviesDS', 
+        charset='utf8mb4', cursorclass=pymysql.cursors.DictCursor)
 
-# Get accuracy for all models 
+    # Models
+    models = ['KNN', 'collab']
+    result = []
 
-# Accuracy is determined, each time the model runs. Each time the model runs, the accuracy is saved
-# in the db and the 'get accuracy' step calculates the mean per model.
+    for model in models:
+        # Get all results from models
+        print('a')
+        # result.extend(model_result) <-- all result for count
 
-# Count how many times certain movies occur
+    # Count results using dictCounter
+    # count = Counter(results_count)
 
-# Sort by count and accuracy of model
+    # Get first 30 results
 
-# Get first 30 results
+    # Save recommendations in table for user
 
-# Save recommendations in table for user
+    return recommendations
+
+if __name__ == '__main__':
+    data = main()
+    print(data)
+
+
+

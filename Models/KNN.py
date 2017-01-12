@@ -80,19 +80,13 @@ def KNN(ratings, ratings_log_in_user, k):
 	return recommendations
 
 
-def main():
+def main(logged_in_user):
 	# Setup connection
 	conn = pymysql.connect(host='81.204.145.155', user="dsMinor", passwd="dsMinor!123", db='MoviesDS', 
 		charset='utf8mb4', cursorclass=pymysql.cursors.DictCursor)
 
-	# Get userId from form
-	logged_in_user = 670
-
 	# Load ratings
 	ratings = pd.read_sql("select * from ratings", con=conn)
-
-	# Determine k = n^0.5
-	#k = int(math.pow(len(ratings.index), 0.5)) <-- gives a super high value
 
 	# Try k with unique users (since nearest neihbours is based on users)
 	k = int(math.pow(len(ratings['userId'].unique()), 0.5))
@@ -110,5 +104,6 @@ def main():
 	return recommendations
 
 if __name__ == '__main__':
-	data = main()
+	user = 670
+	data = main(user)
 	print(data)
