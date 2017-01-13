@@ -41,7 +41,7 @@ def process_data(conn):
 
 	# Create matrix showing rating by user and movie
 	for row in merged_ratings.itertuples():
-		ratings_matrix[row[1]-1, row[6]-1] = row[3]
+		ratings_matrix[row[1]-2, row[6]-2] = row[3]
 
 	# Calculate sparsity (means that percentage of user-item ratings have a value, 
 	#zero does not count as value.)
@@ -78,7 +78,7 @@ def get_recommendations(user, merged_ratings, item_correlation, idx_to_movie, mo
 
 	return list(recommendations.values)
 
-def main(user):
+def main_cuf(user):
 	# Setup connection
 	conn = pymysql.connect(host='81.204.145.155', user="dsMinor", passwd="dsMinor!123", db='MoviesDS', 
 			charset='utf8mb4', cursorclass=pymysql.cursors.DictCursor)
@@ -97,7 +97,8 @@ def main(user):
 
 	return recommendations
 
-if __name__ == '__main__':
-	user = 670
-	data = main(user)
-	print(data)
+#if __name__ == '__main__':	
+#	user = 670
+#	print(user)
+#	data = main(user)
+#	print(data)

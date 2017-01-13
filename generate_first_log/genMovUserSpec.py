@@ -19,11 +19,11 @@ def get_rand_movies(amount_to_gen, movies, ratings, conn):
     # More ratings > more people know the movie > higher chance that the user knows the movie
     agg_movie = ratings.groupby(['movieId'])['rating'].agg(['mean', 'count'])
 
-    # Calculate total average/average count of all movies.
-    ratings_avg = ratings['rating'].mean()
+    # Calculate total 3rd quantile/average count of all movies.
+    ratings_avg = ratings['rating'].quantile(0.75)
     ratings_avg_cnt = agg_movie['count'].mean()
 
-    # If movie avg & count is higher than total avg & count.
+    # If movie avg & count is higher than total 3rd quantile & count.
     mov_filtered = agg_movie[(agg_movie['mean'] >= ratings_avg) & (agg_movie['count'] >= ratings_avg_cnt)]
 
     # generate fifty random movies and save movieId's in list

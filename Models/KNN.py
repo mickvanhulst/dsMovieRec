@@ -80,7 +80,7 @@ def KNN(ratings, ratings_log_in_user, k):
 	return recommendations
 
 
-def main(logged_in_user):
+def main_knn(logged_in_user):
 	# Setup connection
 	conn = pymysql.connect(host='81.204.145.155', user="dsMinor", passwd="dsMinor!123", db='MoviesDS', 
 		charset='utf8mb4', cursorclass=pymysql.cursors.DictCursor)
@@ -103,7 +103,7 @@ def main(logged_in_user):
 
 	return recommendations
 
-if __name__ == '__main__':
-	user = 670
-	data = main(user)
-	print(data)
+#if __name__ == '__main__':
+#	#user = 670
+#	data = main_knn(user)
+#	print(data)
