@@ -5,6 +5,7 @@ from collab_user_filtering import main_cuf
 from collections import Counter
 import sys
 import pandas as pd
+import sqlalchemy
 
 def main(user):
     # Init result and add results of models
@@ -33,6 +34,3 @@ def main(user):
 if __name__ == '__main__':
     user = int(sys.argv[1])
     main(user)
-
-
-
