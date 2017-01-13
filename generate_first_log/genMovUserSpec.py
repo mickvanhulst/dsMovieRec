@@ -71,7 +71,7 @@ def main():
                            charset='utf8mb4', cursorclass=pymysql.cursors.DictCursor)
 
     # Minimum total (static variable)
-    MINIMUM_TOTAL = 50
+    MINIMUM_TOTAL = 100
 
     # Check how many movies need to be generated
     amount_to_gen = check_amount_gen(conn, MINIMUM_TOTAL)
