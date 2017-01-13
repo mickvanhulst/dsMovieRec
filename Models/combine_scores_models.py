@@ -10,7 +10,6 @@ def main():
     #    charset='utf8mb4', cursorclass=pymysql.cursors.DictCursor)
 
     # Models
-    user = 670
     result = []
     result.extend(main_cuf(user))
     result.extend(main_knn(user))
@@ -28,7 +27,8 @@ def main():
     return top_results
 
 if __name__ == '__main__':
-    data = main()
+    user = 670
+    data = main(user)
     print(data)
 
 
