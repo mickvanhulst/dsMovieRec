@@ -57,7 +57,6 @@ def process_data(conn):
 
 def get_recommendations(user, merged_ratings, item_correlation, idx_to_movie, movies):
 	# Movies that user likes
-	user = 670
 	movies_logged_in_user = merged_ratings['idx'][merged_ratings['userId'] == user]
 
 	#Find movies that similar uses like
@@ -96,9 +95,3 @@ def main_cuf(user):
 	recommendations = get_recommendations(user, merged_ratings, item_correlation, idx_to_movie, movies)
 
 	return recommendations
-
-#if __name__ == '__main__':	
-#	user = 670
-#	print(user)
-#	data = main(user)
-#	print(data)

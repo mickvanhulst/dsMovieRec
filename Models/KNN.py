@@ -29,7 +29,6 @@ def RMSE(user, ratings, ratings_log_in_user):
 			sum += math.pow(rating_curr_user - ratings.loc[idx, 'rating'].item(), 2)
 			count += 1
 		
-	
 	if not count:
 		return 100000 # no ratings in common, so we return a huge distance
 	else:
@@ -57,7 +56,6 @@ def get_recommendations(ratings, ratings_log_in_user, nearest_neighbours):
 	movie_list = []
 	for neighbour in nearest_neighbours:
 		for movie in ratings[ratings['userId'] == neighbour].index:
-			#movie_name = ratings.loc[movie, 'movieId']
 
 			movie_list.append(ratings.loc[movie, 'movieId'])
 
@@ -97,13 +95,8 @@ def main_knn(logged_in_user):
 	# Generate recommendations
 	recommendations = KNN(ratings, ratings_log_in_user, k)
 
-	# Sort data and get top thirty percent
+	# Sort data and get top ten percent
 	recommendations = sorted(recommendations, key=recommendations.get, 
 		reverse=True)[:round(len(recommendations) * 0.1)]
 
 	return recommendations
-
-#if __name__ == '__main__':
-#	#user = 670
-#	data = main_knn(user)
-#	print(data)
