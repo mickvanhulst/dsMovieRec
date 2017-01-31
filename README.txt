@@ -19,7 +19,11 @@ contains an exact copy of the application. This means that it also includes our
 Python scripts. This also means that this script could be implemented on a server any time, given that the server supports the used packages & has the correct database installed (database connection within scripts would have to be
 changed)
 
-#Credits
+# Credits
 Thanks to Bilal Aarabe, Yoeri Bruchem, Gabriële de la Cruz & Mick van Hulst for the development of this project. 
+
+# Github
+The entire folder can also be found on the following github link: https://github.com/mickvanhulst/dsMovieRec
+
 
 Note: There is an extra file called 'README.md' in this directory. This file is added because the project is uploaded on Github. Github uses md files (markdown files) as description files for projects.
